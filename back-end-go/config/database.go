@@ -54,5 +54,21 @@ func ConnectDB() {
 
 	fmt.Println("Migrasi tabel berhasil diselesaikan!")
 
+	SeedRoles(database)
+
 	DB = database
+}
+
+func SeedRoles(db *gorm.DB) {
+	roles := []models.Role{
+		{Name: "school", Description: "Akun representasi pihak sekolah"},
+		{Name: "spgg", Description: "Akun untuk Ahli Gizi (SPGG)"},
+		{Name: "umum", Description: "Akun untuk orang tua atau pengguna umum"},
+	}
+
+	for _, role := range roles {
+		db.Where("name = ?", role.Name).FirstOrCreate(&role)
+	}
+	
+	fmt.Println("Pengecekan dan pengisian 3 role dasar berhasil!")
 }
