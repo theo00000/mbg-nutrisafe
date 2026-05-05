@@ -1,12 +1,4 @@
 # Backend (Go)
-
-## 🚀 Persiapan Awal (Prerequisites)
-
-Sebelum menjalankan proyek, pastikan kamu sudah menginstal:
-* **Go** (Versi 1.20 ke atas)
-* **PostgreSQL** (Bisa via Laragon atau instalasi mandiri/standalone)
-* **Git**
-
 ---
 
 ## 🛠️ Langkah-Langkah Setelah `git pull`
