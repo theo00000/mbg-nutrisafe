@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { RecentReports } from "@/components/dashboard/recent-reports";
 import { QuickSummary } from "@/components/dashboard/quick-summary";
 import { Building2, ClipboardList, School, ShieldAlert } from "lucide-react";
+import { ApiStatusCard } from "@/components/dashboard/api-status-card";
 
 const stats = [
   {
@@ -44,6 +45,11 @@ export default function AdminPage() {
 
       <section className="flex-1 p-8">
         <AdminHeader />
+
+        <div className="mb-5 flex justify-end">
+          <ApiStatusCard />
+        </div>
+
         <div className="mb-8 flex items-start justify-between">
           <div>
             <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
