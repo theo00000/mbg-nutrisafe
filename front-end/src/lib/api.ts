@@ -1,22 +1,33 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export async function apiFetch<T>(path: string): Promise<T> {
+type ApiFetchOptions = {
+  method?: "GET" | "POST" | "PUT" | "DELETE";
+  body?: unknown;
+  token?: string;
+};
+
+export async function apiFetch<T>(
+  path: string,
+  options: ApiFetchOptions = {},
+): Promise<T> {
   if (!API_BASE_URL) {
     throw new Error("NEXT_PUBLIC_API_BASE_URL belum diatur");
   }
 
-  const url = `${API_BASE_URL}${path}`;
-  console.log("Fetching API:", url);
-
-  const response = await fetch(url, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: options.method ?? "GET",
     headers: {
       "Content-Type": "application/json",
+      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
     },
+    body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
+  const data = await response.json().catch(() => null);
+
   if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+    throw new Error(data?.message ?? `API error: ${response.status}`);
   }
 
-  return response.json();
+  return data as T;
 }
