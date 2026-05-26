@@ -3,8 +3,10 @@ package controllers
 import (
 	"fmt"
 	"os"
-	"time"
+	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"back-end/app/models"
 	"back-end/config"
@@ -69,10 +71,10 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	// Worst-case 4: Role typo atau tidak valid (Validasi manual agar lebih cepat tanpa hit database)
-	if input.RoleName != "school" && input.RoleName != "spgg" && input.RoleName != "umum" {
+	if input.RoleName != "school" && input.RoleName != "spgg" && input.RoleName != "umum" && input.RoleName != "admin" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Role tidak valid! Pilihan yang tersedia: school, spgg, umum.",
+			"message": "Role tidak valid! Pilihan yang tersedia: admin, school, spgg, umum.",
 		})
 	}
 
@@ -109,6 +111,137 @@ func Register(c *fiber.Ctx) error {
 			"email":   user.Email,
 			"phone":   user.Phone,
 			"role":    user.RoleName,
+		},
+	})
+}
+
+func RegisterSPGG(c *fiber.Ctx) error {
+	registrantName := c.FormValue("registrant_name")
+	institutionName := c.FormValue("institution_name")
+	nikNpwp := c.FormValue("nik_npwp")
+	email := c.FormValue("email")
+	phone := c.FormValue("phone")
+	spggName := c.FormValue("spgg_name")
+	spggAddress := c.FormValue("spgg_address")
+	productionCapacityStr := c.FormValue("production_capacity")
+
+	if registrantName == "" || nikNpwp == "" || email == "" || phone == "" || spggName == "" || spggAddress == "" || productionCapacityStr == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Semua kolom wajib (kecuali institution_name) harus diisi.",
+		})
+	}
+
+	productionCapacity, err := strconv.Atoi(productionCapacityStr)
+	if err != nil || productionCapacity <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Kapasitas produksi harus berupa angka positif.",
+		})
+	}
+
+	if len(nikNpwp) != 16 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "NIK harus terdiri dari 16 digit.",
+		})
+	}
+
+	var existing models.SpggRegistration
+	if err := config.DB.Where("email = ?", email).First(&existing).Error; err == nil {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Email ini sudah pernah mendaftar sebagai mitra SPGG.",
+		})
+	}
+
+	hashedNikNpwp, err := bcrypt.GenerateFromPassword([]byte(nikNpwp), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Gagal mengenkripsi data identitas.",
+		})
+	}
+
+	uploadDir := "./uploads/spgg"
+	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Gagal menyiapkan direktori upload.",
+		})
+	}
+
+	proposalFile, err := c.FormFile("proposal")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "File proposal wajib diupload.",
+		})
+	}
+	if filepath.Ext(proposalFile.Filename) != ".pdf" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "File proposal harus berformat .pdf.",
+		})
+	}
+	proposalFilename := fmt.Sprintf("proposal_%d_%s", time.Now().UnixNano(), filepath.Base(proposalFile.Filename))
+	proposalPath := filepath.Join(uploadDir, proposalFilename)
+	if err := c.SaveFile(proposalFile, proposalPath); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Gagal menyimpan file proposal.",
+		})
+	}
+
+	kitchenPhotoFile, err := c.FormFile("kitchen_photo")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "File foto dapur wajib diupload.",
+		})
+	}
+	if kitchenPhotoFile.Size > 5*1024*1024 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Ukuran foto dapur tidak boleh melebihi 5 MB.",
+		})
+	}
+	kitchenPhotoFilename := fmt.Sprintf("kitchen_photo_%d_%s", time.Now().UnixNano(), filepath.Base(kitchenPhotoFile.Filename))
+	kitchenPhotoPath := filepath.Join(uploadDir, kitchenPhotoFilename)
+	if err := c.SaveFile(kitchenPhotoFile, kitchenPhotoPath); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Gagal menyimpan file foto dapur.",
+		})
+	}
+
+	registration := models.SpggRegistration{
+		RegistrantName:     registrantName,
+		InstitutionName:    institutionName,
+		NikNpwp:            string(hashedNikNpwp),
+		Email:              email,
+		Phone:              phone,
+		SpggName:           spggName,
+		SpggAddress:        spggAddress,
+		ProductionCapacity: productionCapacity,
+		ProposalPath:       proposalPath,
+		KitchenPhotoPath:   kitchenPhotoPath,
+		Status:             "pending",
+	}
+
+	if err := config.DB.Create(&registration).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Gagal menyimpan data pendaftaran. Silakan coba lagi nanti.",
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Formulir pendaftaran berhasil dikirim. Silahkan tunggu verifikasi selanjutnya melalui e-mail.",
+		"data": fiber.Map{
+			"id":    registration.ID,
+			"email": registration.Email,
 		},
 	})
 }
