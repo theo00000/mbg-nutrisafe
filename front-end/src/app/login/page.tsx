@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/services/auth-service";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -55,6 +54,7 @@ export default function LoginPage() {
             placeholder="nama@email.com"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
+            className="h-11 rounded-2xl"
             required
           />
         </div>
@@ -66,17 +66,22 @@ export default function LoginPage() {
             placeholder="Masukkan password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            className="h-11 rounded-2xl"
             required
           />
         </div>
 
         {errorMessage ? (
-          <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
+          <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
             {errorMessage}
           </p>
         ) : null}
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="h-11 w-full rounded-full bg-blue-600 font-semibold hover:bg-blue-700"
+          disabled={isLoading}
+        >
           {isLoading ? "Memproses..." : "Masuk"}
         </Button>
 

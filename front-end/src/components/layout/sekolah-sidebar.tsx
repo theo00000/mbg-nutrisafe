@@ -32,12 +32,12 @@ const menuItems = [
 
 export function SekolahSidebar() {
   return (
-    <aside className="flex h-screen w-72 flex-col bg-emerald-600 px-5 py-5 text-white">
+    <aside className="flex h-screen w-72 flex-col border-r border-white/10 bg-emerald-950 px-5 py-5 text-white">
+      {" "}
       <div className="mb-8 rounded-3xl bg-white/15 p-4 ring-1 ring-white/20">
         <p className="text-sm font-bold">NutriSafe MBG</p>
         <p className="mt-1 text-xs text-emerald-50">Dashboard Sekolah</p>
       </div>
-
       <nav className="space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -45,10 +45,10 @@ export function SekolahSidebar() {
           return (
             <div
               key={item.label}
-              className={`flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-medium ${
+              className={`flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-semibold transition ${
                 item.active
-                  ? "bg-white text-emerald-700 shadow-sm"
-                  : "text-emerald-50 hover:bg-white/10"
+                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-900/30"
+                  : "text-emerald-50/80 hover:bg-white/10 hover:text-white"
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -57,10 +57,9 @@ export function SekolahSidebar() {
           );
         })}
       </nav>
-
-      <div className="mt-auto rounded-3xl bg-white/15 p-4 ring-1 ring-white/20">
-        <p className="text-xs text-emerald-50">Role aktif</p>
-        <p className="mt-1 text-sm font-semibold">Sekolah</p>
+      <div className="mt-auto rounded-[1.75rem] bg-white/10 p-4 ring-1 ring-white/10">
+        <p className="text-xs text-emerald-100/70">Role aktif</p>
+        <p className="mt-1 text-sm font-bold">Sekolah</p>
       </div>
     </aside>
   );

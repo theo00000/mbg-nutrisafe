@@ -29,21 +29,21 @@ const schoolStats = [
 export default function SekolahPage() {
   return (
     <RequireAuth allowedRoles={["school"]}>
-      <main className="flex min-h-screen bg-emerald-50">
+      <main className="flex min-h-screen bg-[#f8fbff]">
         <SekolahSidebar />
 
-        <section className="flex-1 p-8">
-          <div className="mb-8 flex items-center justify-between">
+        <section className="flex-1 overflow-y-auto p-8">
+          <div className="mb-8 flex items-start justify-between rounded-[2rem] border border-white bg-white/80 p-6 shadow-sm backdrop-blur">
             <div>
-              <p className="text-sm font-semibold text-emerald-700">
+              <p className="text-sm font-bold text-emerald-700">
                 Dashboard Sekolah
               </p>
 
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+              <h1 className="mt-3 text-4xl font-black tracking-tight text-slate-950">
                 Monitoring Keamanan Makanan Sekolah
               </h1>
 
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                 Pantau ringkasan siswa, menu harian, alergi, dan laporan terkait
                 distribusi MBG.
               </p>
@@ -54,10 +54,13 @@ export default function SekolahPage() {
 
           <div className="grid grid-cols-4 gap-5">
             {schoolStats.map((item) => (
-              <Card key={item.label} className="border-emerald-100 shadow-sm">
+              <Card
+                key={item.label}
+                className="rounded-[1.75rem] border-white bg-white/85 shadow-sm backdrop-blur transition hover:-translate-y-1 hover:shadow-xl"
+              >
                 <CardContent className="p-5">
                   <p className="text-sm text-slate-500">{item.label}</p>
-                  <p className="mt-3 text-3xl font-bold text-slate-950">
+                  <p className="mt-3 text-4xl font-black tracking-tight text-slate-950">
                     {item.value}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">{item.note}</p>

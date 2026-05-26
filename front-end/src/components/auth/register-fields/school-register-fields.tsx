@@ -34,7 +34,7 @@ export function SchoolRegisterFields({
       </p>
 
       <div className="mt-5 space-y-4 rounded-2xl bg-white p-4">
-        <div className="space-y-2">
+        <div className="space-y-2 h-11 rounded-2xl">
           <Label>
             Nama Sekolah <span className="text-red-500">*</span>
           </Label>
@@ -45,7 +45,7 @@ export function SchoolRegisterFields({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 h-11 rounded-2xl">
           <Label>
             NPSN <span className="text-red-500">*</span>
           </Label>
@@ -56,7 +56,7 @@ export function SchoolRegisterFields({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 h-11 rounded-2xl">
           <Label>Alamat Sekolah</Label>
           <Input
             placeholder="Alamat lengkap sekolah"
@@ -65,7 +65,7 @@ export function SchoolRegisterFields({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 h-11 rounded-2xl">
           <Label>Penanggung Jawab</Label>
           <Input
             placeholder="Nama guru/staf penanggung jawab"

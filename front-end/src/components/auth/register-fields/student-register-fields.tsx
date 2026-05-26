@@ -38,7 +38,7 @@ export function StudentRegisterFields({
       </p>
 
       <div className="mt-5 space-y-4 rounded-2xl bg-white p-4">
-        <div className="space-y-2">
+        <div className="space-y-2 h-11 rounded-2xl">
           <Label>
             Nama Siswa <span className="text-red-500">*</span>
           </Label>
@@ -49,7 +49,7 @@ export function StudentRegisterFields({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 h-11 rounded-2xl">
           <Label>
             Sekolah Asal <span className="text-red-500">*</span>
           </Label>
@@ -60,7 +60,7 @@ export function StudentRegisterFields({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 h-11 rounded-2xl">
           <Label>Kelas</Label>
           <Input
             placeholder="Contoh: 5A"
@@ -69,7 +69,7 @@ export function StudentRegisterFields({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 h-11 rounded-2xl">
           <Label>Alergi Awal</Label>
           <Input
             placeholder="Contoh: kacang, susu, seafood"
@@ -78,7 +78,7 @@ export function StudentRegisterFields({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 h-11 rounded-2xl">
           <Label>Catatan Makanan</Label>
           <Input
             placeholder="Contoh: tidak suka pedas, perlu menu rendah gula"

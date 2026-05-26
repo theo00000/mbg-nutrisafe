@@ -43,7 +43,7 @@ export function MitraRegisterFields({
           <h3 className="text-sm font-bold text-slate-950">Data Mitra</h3>
 
           <div className="mt-3 space-y-3 rounded-2xl bg-white p-4">
-            <div className="space-y-2">
+            <div className="space-y-2 h-11 rounded-2xl">
               <Label>
                 Nama Instansi <span className="text-red-500">*</span>
               </Label>
@@ -54,7 +54,7 @@ export function MitraRegisterFields({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 h-11 rounded-2xl">
               <Label>
                 NIK / NPWP <span className="text-red-500">*</span>
               </Label>
@@ -71,7 +71,7 @@ export function MitraRegisterFields({
           <h3 className="text-sm font-bold text-slate-950">Data SPPG</h3>
 
           <div className="mt-3 space-y-3 rounded-2xl bg-white p-4">
-            <div className="space-y-2">
+            <div className="space-y-2 h-11 rounded-2xl">
               <Label>
                 Nama SPPG <span className="text-red-500">*</span>
               </Label>
@@ -82,7 +82,7 @@ export function MitraRegisterFields({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 h-11 rounded-2xl">
               <Label>Alamat SPPG</Label>
               <Input
                 placeholder="Alamat lengkap dapur/SPPG"
@@ -91,7 +91,7 @@ export function MitraRegisterFields({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 h-11 rounded-2xl">
               <Label>Kapasitas Produksi</Label>
               <Input
                 placeholder="Contoh: 1000 porsi/hari"
@@ -106,12 +106,12 @@ export function MitraRegisterFields({
           <h3 className="text-sm font-bold text-slate-950">Upload Dokumen</h3>
 
           <div className="mt-3 space-y-3 rounded-2xl bg-white p-4">
-            <div className="space-y-2">
+            <div className="space-y-2 h-11 rounded-2xl">
               <Label>Upload Proposal PDF</Label>
               <Input type="file" accept=".pdf" />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 h-11 rounded-2xl">
               <Label>Upload Foto Dapur</Label>
               <Input type="file" accept="image/*" />
             </div>
