@@ -39,13 +39,18 @@ func ConnectDB() {
 	err = database.AutoMigrate(
 		&models.User{},
 		&models.Role{},
+		&models.SchoolProfile{},
+		&models.SpggProfile{},
 		&models.Menu{},
 		&models.Ingredient{},
 		&models.Student{},
 		&models.Allergy{},
 		&models.FoodReport{},
+		&models.FoodDistribution{},
 		&models.DailyMenuPlan{},
 		&models.AllergyAlternativeSuggestion{},
+		&models.StudentAllergy{},
+		&models.SpggRegistration{},
 	)
 
 	if err != nil {
@@ -61,8 +66,9 @@ func ConnectDB() {
 
 func SeedRoles(db *gorm.DB) {
 	roles := []models.Role{
+		{Name: "admin", Description: "Admin BGN (Badan Gizi Nasional)"},
 		{Name: "school", Description: "Akun representasi pihak sekolah"},
-		{Name: "spgg", Description: "Akun untuk Ahli Gizi (SPGG)"},
+		{Name: "spgg", Description: "Akun untuk mitra SPPG"},
 		{Name: "umum", Description: "Akun untuk orang tua atau pengguna umum"},
 	}
 
