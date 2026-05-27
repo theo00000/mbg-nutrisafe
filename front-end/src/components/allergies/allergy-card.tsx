@@ -47,7 +47,8 @@ export function AllergyCard() {
   }
 
   return (
-    <Card className="border-orange-100 shadow-sm">
+    <Card className="rounded-[1.75rem] border-white bg-white/85 shadow-sm backdrop-blur">
+      {" "}
       <CardContent className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -73,6 +74,7 @@ export function AllergyCard() {
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Contoh: telur, seafood, kacang"
+              className="h-11 rounded-2xl"
               required
             />
           </div>
@@ -83,11 +85,15 @@ export function AllergyCard() {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Catatan singkat alergi"
+              className="h-11 rounded-2xl"
               required
             />
           </div>
 
-          <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
+          <Button
+            type="submit"
+            className="h-11 rounded-full bg-orange-500 px-6 font-semibold hover:bg-orange-600"
+          >
             Tambah Alergi
           </Button>
         </form>
@@ -96,7 +102,7 @@ export function AllergyCard() {
           {allergies.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-orange-100 bg-orange-50 p-4"
+              className="rounded-2xl border border-orange-100 bg-orange-50/80 p-4 transition hover:bg-orange-100/70"
             >
               <p className="text-sm font-semibold text-slate-900">
                 {item.name}

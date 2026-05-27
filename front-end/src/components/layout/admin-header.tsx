@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 
 export function AdminHeader() {
   return (
-    <header className="mb-8 flex items-center justify-between gap-6">
+    <header className="mb-8 flex items-start justify-between gap-6 rounded-[2rem] border border-white bg-white/80 p-6 shadow-sm backdrop-blur">
+      {" "}
       <div>
         <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
           Admin MBG
         </Badge>
 
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+        <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">
           Dashboard Admin
         </h1>
 
@@ -21,19 +22,18 @@ export function AdminHeader() {
           distribusi MBG.
         </p>
       </div>
-
       <div className="flex items-center gap-3">
         <div className="relative w-72">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             placeholder="Cari laporan..."
-            className="h-11 rounded-2xl border-blue-100 bg-white pl-9"
+            className="h-11 rounded-full border-slate-200 bg-white pl-9"
           />
         </div>
 
-        <div className="flex h-11 items-center gap-2 rounded-2xl bg-white px-4 shadow-sm">
-          <Wifi className="h-4 w-4 text-blue-600" />
-          <span className="text-sm font-medium text-slate-700">Online</span>
+        <div className="flex h-11 items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4">
+          <Wifi className="h-4 w-4 text-emerald-600" />
+          <span className="text-sm font-semibold text-emerald-700">Online</span>
         </div>
 
         <Button size="icon" variant="outline" className="h-11 w-11 rounded-2xl">

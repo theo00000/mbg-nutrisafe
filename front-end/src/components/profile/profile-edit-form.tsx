@@ -79,7 +79,8 @@ export function ProfileEditForm() {
   }
 
   return (
-    <Card className="border-orange-100 shadow-sm">
+    <Card className="rounded-[1.75rem] border-white bg-white/85 shadow-sm backdrop-blur">
+      {" "}
       <CardContent className="p-6">
         <h2 className="text-lg font-semibold text-slate-950">Edit Profil</h2>
 
@@ -97,6 +98,7 @@ export function ProfileEditForm() {
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="Nama lengkap"
+                className="h-11 rounded-2xl"
                 required
               />
             </div>
@@ -107,6 +109,7 @@ export function ProfileEditForm() {
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="08xxxxxxxxxx"
+                className="h-11 rounded-2xl"
               />
             </div>
 
@@ -122,7 +125,11 @@ export function ProfileEditForm() {
               </p>
             ) : null}
 
-            <Button type="submit" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              className="h-11 rounded-full bg-orange-500 px-6 font-semibold hover:bg-orange-600"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </form>

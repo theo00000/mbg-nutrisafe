@@ -42,7 +42,8 @@ export function ProfileCard() {
   }, []);
 
   return (
-    <Card className="border-orange-100 shadow-sm">
+    <Card className="rounded-[1.75rem] border-white bg-white/85 shadow-sm backdrop-blur">
+      {" "}
       <CardContent className="p-6">
         <h2 className="text-lg font-semibold text-slate-950">
           Profil Pengguna
@@ -64,28 +65,32 @@ export function ProfileCard() {
 
         {profile ? (
           <div className="mt-5 grid grid-cols-2 gap-4">
-            <div className="rounded-2xl bg-orange-50 p-4">
+            <div className="rounded-2xl border border-orange-100 bg-orange-50/80 p-4">
+              {" "}
               <p className="text-xs text-slate-500">Nama</p>
               <p className="mt-1 text-sm font-semibold text-slate-900">
                 {profile.name}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-orange-50 p-4">
+            <div className="rounded-2xl border border-orange-100 bg-orange-50/80 p-4">
+              {" "}
               <p className="text-xs text-slate-500">Email</p>
               <p className="mt-1 text-sm font-semibold text-slate-900">
                 {profile.email}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-orange-50 p-4">
+            <div className="rounded-2xl border border-orange-100 bg-orange-50/80 p-4">
+              {" "}
               <p className="text-xs text-slate-500">Telepon</p>
               <p className="mt-1 text-sm font-semibold text-slate-900">
                 {profile.phone || "-"}
               </p>
             </div>
 
-            <div className="rounded-2xl bg-orange-50 p-4">
+            <div className="rounded-2xl border border-orange-100 bg-orange-50/80 p-4">
+              {" "}
               <p className="text-xs text-slate-500">Role</p>
               <p className="mt-1 text-sm font-semibold text-slate-900">
                 {profile.role || profile.role_name || "-"}
