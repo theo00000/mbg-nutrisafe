@@ -1,42 +1,12 @@
-package controllers
+package allergy
 
 import (
-	"fmt"
-	"os"
-	"strings"
-
+	"back-end/app/middleware"
 	"back-end/app/models"
 	"back-end/config"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 )
-
-func getUserIDFromToken(c *fiber.Ctx) (uint, error) {
-	authHeader := c.Get("Authorization")
-	if authHeader == "" {
-		return 0, fmt.Errorf("token tidak ditemukan")
-	}
-	parts := strings.Split(authHeader, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		return 0, fmt.Errorf("format token tidak valid")
-	}
-	token, err := jwt.Parse(parts[1], func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("JWT_SECRET")), nil
-	})
-	if err != nil || !token.Valid {
-		return 0, fmt.Errorf("token tidak valid")
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return 0, fmt.Errorf("gagal membaca claims")
-	}
-	userIDFloat, ok := claims["user_id"].(float64)
-	if !ok {
-		return 0, fmt.Errorf("id tidak valid")
-	}
-	return uint(userIDFloat), nil
-}
 
 type AllergyInput struct {
 	StudentName    string `json:"student_name"`
@@ -54,7 +24,7 @@ type SchoolInfo struct {
 
 type AllergyResponse struct {
 	ID             uint       `json:"id"`
-	School         SchoolInfo `json:"school"` 
+	School         SchoolInfo `json:"school"`
 	StudentName    string     `json:"student_name"`
 	ClassName      string     `json:"class_name"`
 	AllergyType    string     `json:"allergy_type"`
@@ -64,7 +34,7 @@ type AllergyResponse struct {
 }
 
 func CreateAllergy(c *fiber.Ctx) error {
-	schoolID, err := getUserIDFromToken(c)
+	schoolID, err := middleware.GetUserIDFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
@@ -82,7 +52,7 @@ func CreateAllergy(c *fiber.Ctx) error {
 	}
 
 	allergy := models.StudentAllergy{
-		SchoolID:       schoolID, 
+		SchoolID:       schoolID,
 		StudentName:    input.StudentName,
 		ClassName:      input.ClassName,
 		AllergyType:    input.AllergyType,
@@ -121,7 +91,7 @@ func CreateAllergy(c *fiber.Ctx) error {
 }
 
 func GetAllergies(c *fiber.Ctx) error {
-	schoolID, err := getUserIDFromToken(c)
+	schoolID, err := middleware.GetUserIDFromToken(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
@@ -136,19 +106,11 @@ func GetAllergies(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data."})
 	}
 
-	var responseData []AllergyResponse
-	
-	if len(allergies) == 0 {
-		responseData = []AllergyResponse{}
-	}
-
+	responseData := []AllergyResponse{}
 	for _, a := range allergies {
 		responseData = append(responseData, AllergyResponse{
-			ID: a.ID,
-			School: SchoolInfo{
-				ID:   school.ID,
-				Name: school.Name,
-			},
+			ID:             a.ID,
+			School:         SchoolInfo{ID: school.ID, Name: school.Name},
 			StudentName:    a.StudentName,
 			ClassName:      a.ClassName,
 			AllergyType:    a.AllergyType,

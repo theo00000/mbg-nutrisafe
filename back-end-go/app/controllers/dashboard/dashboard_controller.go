@@ -1,4 +1,4 @@
-package controllers
+package dashboard
 
 import (
 	"back-end/app/models"
@@ -8,9 +8,7 @@ import (
 )
 
 func GetPublicStats(c *fiber.Ctx) error {
-	var schoolCount int64
-	var spggCount int64
-	var studentCount int64
+	var schoolCount, sppgCount, studentCount int64
 
 	if err := config.DB.Model(&models.User{}).Where("role_name = ?", "school").Count(&schoolCount).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -20,7 +18,7 @@ func GetPublicStats(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := config.DB.Model(&models.User{}).Where("role_name = ?", "spgg").Count(&spggCount).Error; err != nil {
+	if err := config.DB.Model(&models.User{}).Where("role_name = ?", "sppg").Count(&sppgCount).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":       "error",
 			"message":      "Gagal mengambil data jumlah mitra SPPG",
@@ -40,7 +38,7 @@ func GetPublicStats(c *fiber.Ctx) error {
 		"status": "success",
 		"data": fiber.Map{
 			"total_school":  schoolCount,
-			"total_spgg":    spggCount,
+			"total_sppg":    sppgCount,
 			"total_student": studentCount,
 		},
 	})
