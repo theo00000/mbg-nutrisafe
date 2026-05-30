@@ -33,11 +33,11 @@ const menuItems = [
 export function SekolahSidebar() {
   return (
     <aside className="flex h-screen w-72 flex-col border-r border-white/10 bg-emerald-950 px-5 py-5 text-white">
-      {" "}
-      <div className="mb-8 rounded-3xl bg-white/15 p-4 ring-1 ring-white/20">
-        <p className="text-sm font-bold">NutriSafe MBG</p>
-        <p className="mt-1 text-xs text-emerald-50">Dashboard Sekolah</p>
+      <div className="mb-8 rounded-[1.75rem] bg-white/10 p-4 ring-1 ring-white/10">
+        <p className="text-sm font-black tracking-tight">NutriSafe MBG</p>
+        <p className="mt-1 text-xs text-emerald-100/70">School Safety Panel</p>
       </div>
+
       <nav className="space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -57,6 +57,7 @@ export function SekolahSidebar() {
           );
         })}
       </nav>
+
       <div className="mt-auto rounded-[1.75rem] bg-white/10 p-4 ring-1 ring-white/10">
         <p className="text-xs text-emerald-100/70">Role aktif</p>
         <p className="mt-1 text-sm font-bold">Sekolah</p>

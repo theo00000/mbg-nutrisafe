@@ -19,41 +19,39 @@ export function SchoolAllergyCard() {
   const [studentName, setStudentName] = useState("");
   const [className, setClassName] = useState("");
   const [allergyType, setAllergyType] = useState("");
-  const [severity, setSeverity] = useState("Ringan");
+  const [severity, setSeverity] = useState("ringan");
   const [description, setDescription] = useState("");
   const [actionRequired, setActionRequired] = useState("");
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  async function loadAllergies() {
+  useEffect(() => {
     const token = getAuthToken();
 
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setErrorMessage("Token tidak ditemukan. Silakan login ulang.");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(false);
       return;
     }
 
-    try {
-      setErrorMessage("");
-      const data = await getAllergies(token);
-      setAllergies(data);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Gagal memuat data alergi.";
+    getAllergies(token)
+      .then((data) => {
+        setAllergies(data);
+      })
+      .catch((error) => {
+        const message =
+          error instanceof Error ? error.message : "Gagal memuat data alergi.";
 
-      setErrorMessage(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadAllergies();
+        setErrorMessage(message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -66,10 +64,8 @@ export function SchoolAllergyCard() {
       return;
     }
 
-    if (!studentName || !className || !allergyType || !severity) {
-      setErrorMessage(
-        "Nama siswa, kelas, jenis alergi, dan tingkat keparahan wajib diisi.",
-      );
+    if (!studentName.trim() || !className.trim() || !allergyType.trim()) {
+      setErrorMessage("Nama siswa, kelas, dan jenis alergi wajib diisi.");
       return;
     }
 
@@ -82,8 +78,8 @@ export function SchoolAllergyCard() {
         student_name: studentName,
         class_name: className,
         allergy_type: allergyType,
-        description,
         severity,
+        description,
         action_required: actionRequired,
       });
 
@@ -92,11 +88,11 @@ export function SchoolAllergyCard() {
       setStudentName("");
       setClassName("");
       setAllergyType("");
-      setSeverity("Ringan");
+      setSeverity("ringan");
       setDescription("");
       setActionRequired("");
 
-      setSuccessMessage("Data alergi siswa berhasil disimpan.");
+      setSuccessMessage("Data alergi berhasil ditambahkan.");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Gagal menyimpan data alergi.";
@@ -108,91 +104,93 @@ export function SchoolAllergyCard() {
   }
 
   return (
-    <Card className="rounded-[1.75rem] border-white/80 bg-white/90 shadow-sm">
+    <Card className="rounded-[1.75rem] border-white bg-white/85 shadow-sm backdrop-blur">
       <CardContent className="p-6">
-        <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="font-heading text-xl font-black text-slate-950">
+            <h2 className="text-lg font-bold text-slate-950">
               Data Alergi Siswa
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Terhubung ke endpoint GET dan POST /school/allergy-data.
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Data ini terhubung ke endpoint GET dan POST /api/allergies untuk
+              role Sekolah.
             </p>
           </div>
 
-          <span className="rounded-full bg-emerald-100 px-4 py-2 text-xs font-bold text-emerald-700">
+          <div className="rounded-full bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700">
             Backend API
-          </span>
+          </div>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 gap-4 md:grid-cols-2"
+          className="mt-6 grid grid-cols-[1fr_1fr] gap-4"
         >
-          <div>
+          <div className="space-y-2">
             <Label>Nama Siswa</Label>
             <Input
               value={studentName}
               onChange={(event) => setStudentName(event.target.value)}
-              className="mt-2 h-11 rounded-2xl"
-              placeholder="Contoh: Vina"
+              placeholder="Contoh: Andi Pratama"
+              className="h-11 rounded-2xl"
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label>Kelas</Label>
             <Input
               value={className}
               onChange={(event) => setClassName(event.target.value)}
-              className="mt-2 h-11 rounded-2xl"
-              placeholder="Contoh: 6A"
+              placeholder="Contoh: 5A"
+              className="h-11 rounded-2xl"
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label>Jenis Alergi</Label>
             <Input
               value={allergyType}
               onChange={(event) => setAllergyType(event.target.value)}
-              className="mt-2 h-11 rounded-2xl"
-              placeholder="Contoh: Alergi Kacang"
+              placeholder="Contoh: kacang, susu, seafood"
+              className="h-11 rounded-2xl"
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label>Tingkat Keparahan</Label>
             <select
               value={severity}
               onChange={(event) => setSeverity(event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm"
+              className="h-11 w-full rounded-2xl border border-input bg-background px-3 text-sm outline-none transition focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
             >
-              <option value="Ringan">Ringan</option>
-              <option value="Sedang">Sedang</option>
-              <option value="Berat">Berat</option>
+              <option value="ringan">Ringan</option>
+              <option value="sedang">Sedang</option>
+              <option value="berat">Berat</option>
             </select>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label>Deskripsi</Label>
             <Input
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              className="mt-2 h-11 rounded-2xl"
-              placeholder="Contoh: Gatal-gatal setelah konsumsi kacang"
+              placeholder="Contoh: muncul ruam setelah konsumsi susu"
+              className="h-11 rounded-2xl"
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label>Tindakan yang Diperlukan</Label>
             <Input
               value={actionRequired}
               onChange={(event) => setActionRequired(event.target.value)}
-              className="mt-2 h-11 rounded-2xl"
-              placeholder="Contoh: Pisahkan menu kacang"
+              placeholder="Contoh: sediakan menu pengganti"
+              className="h-11 rounded-2xl"
             />
           </div>
 
-          <div className="md:col-span-2">
+          <div className="col-span-2">
             {errorMessage ? (
               <p className="mb-3 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
                 {errorMessage}
@@ -207,16 +205,16 @@ export function SchoolAllergyCard() {
 
             <Button
               type="submit"
+              className="h-11 rounded-full bg-emerald-600 px-6 font-semibold hover:bg-emerald-700"
               disabled={isSubmitting}
-              className="rounded-xl bg-emerald-600 px-8 hover:bg-emerald-700"
             >
-              {isSubmitting ? "Menyimpan..." : "Simpan Data Alergi"}
+              {isSubmitting ? "Menyimpan..." : "Tambah Data Alergi"}
             </Button>
           </div>
         </form>
 
         <div className="mt-7">
-          <h3 className="font-heading text-base font-black text-slate-950">
+          <h3 className="text-sm font-bold text-slate-950">
             Daftar Alergi Siswa
           </h3>
 
@@ -225,16 +223,16 @@ export function SchoolAllergyCard() {
           ) : null}
 
           {!isLoading && allergies.length === 0 ? (
-            <p className="mt-3 rounded-2xl border border-dashed border-emerald-200 bg-emerald-50 px-4 py-5 text-sm text-slate-500">
+            <p className="mt-3 rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 px-4 py-5 text-sm text-slate-500">
               Belum ada data alergi siswa.
             </p>
           ) : null}
 
-          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="mt-4 grid grid-cols-2 gap-4">
             {allergies.map((item) => (
               <div
                 key={item.id}
-                className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4"
+                className="rounded-[1.5rem] border border-emerald-100 bg-emerald-50/70 p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -256,7 +254,7 @@ export function SchoolAllergyCard() {
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-slate-500">
-                  {item.description || "Tidak ada deskripsi."}
+                  {item.description || "Tidak ada deskripsi tambahan."}
                 </p>
 
                 <p className="mt-3 text-xs font-medium text-slate-600">

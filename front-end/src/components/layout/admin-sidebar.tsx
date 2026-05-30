@@ -50,7 +50,8 @@ const menuItems = [
 
 export function AdminSidebar() {
   return (
-    <aside className="flex h-screen w-72 flex-col bg-blue-700 px-5 py-5 text-white">
+    <aside className="flex h-screen w-72 flex-col border-r border-white/10 bg-slate-950 px-5 py-5 text-white">
+      {" "}
       <div className="mb-8 flex items-center gap-3 rounded-3xl bg-white/10 p-4 ring-1 ring-white/15">
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-blue-700">
           <ShieldCheck className="h-6 w-6" />
@@ -61,7 +62,6 @@ export function AdminSidebar() {
           <p className="mt-1 text-xs text-blue-100">Admin MBG Panel</p>
         </div>
       </div>
-
       <nav className="space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -70,10 +70,10 @@ export function AdminSidebar() {
             <Link
               key={item.label}
               href={item.href}
-              className={`group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-medium transition ${
+              className={`group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-semibold transition ${
                 item.active
-                  ? "bg-white text-blue-700 shadow-sm"
-                  : "text-blue-50 hover:bg-white/10 hover:text-white"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30"
+                  : "text-slate-300 hover:bg-white/10 hover:text-white"
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -82,10 +82,10 @@ export function AdminSidebar() {
           );
         })}
       </nav>
-      <div className="mt-auto rounded-3xl bg-white/10 p-4 ring-1 ring-white/15">
-        <p className="text-xs text-blue-100">Login sebagai</p>
-        <p className="mt-1 text-sm font-semibold">Admin MBG</p>
-        <p className="mt-1 text-xs text-blue-100">admin@nutrisafe.id</p>
+      <div className="mt-auto rounded-[1.75rem] bg-white/10 p-4 ring-1 ring-white/10">
+        <p className="text-xs text-slate-400">Login sebagai</p>
+        <p className="mt-1 text-sm font-bold">Admin MBG</p>
+        <p className="mt-1 text-xs text-slate-400">admin@nutrisafe.id</p>
       </div>
     </aside>
   );
