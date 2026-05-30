@@ -1,6 +1,5 @@
 import { LogoutButton } from "@/components/auth/logout-button";
 import { SekolahSidebar } from "@/components/layout/sekolah-sidebar";
-
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { AlertCircle, ClipboardList, School, Utensils } from "lucide-react";
 import { RoleStatCard } from "@/components/dashboard/role-stat-card";

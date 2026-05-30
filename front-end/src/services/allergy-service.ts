@@ -29,20 +29,20 @@ export type CreateAllergyPayload = {
   student_name: string;
   class_name: string;
   allergy_type: string;
-  description?: string;
+  description: string;
   severity: string;
-  action_required?: string;
+  action_required: string;
 };
 
 export function getAllergies(token: string) {
-  return apiFetch<AllergyListResponse>("/api/allergies", {
+  return apiFetch<AllergyListResponse>("/school/allergy-data", {
     method: "GET",
     token,
   }).then((response) => response.data);
 }
 
 export function createAllergy(token: string, payload: CreateAllergyPayload) {
-  return apiFetch<AllergyCreateResponse>("/api/allergies", {
+  return apiFetch<AllergyCreateResponse>("/school/allergy-data", {
     method: "POST",
     token,
     body: payload,
