@@ -19,6 +19,9 @@ func SetupRoutes(app *fiber.App) {
 	route.Post("/login", authCtrl.Login)
 	route.Post("/logout", authCtrl.Logout)
 
+	route.Post("/forgot-password/request", authCtrl.RequestPasswordReset)
+	route.Post("/forgot-password/verify", authCtrl.VerifyPasswordReset)
+
 	route.Get("/profile/detail", authCtrl.GetProfile)
 	route.Put("/profile/detail", authCtrl.UpdateProfile)
 	route.Post("/change-password", authCtrl.ChangePassword)

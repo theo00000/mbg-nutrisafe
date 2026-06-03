@@ -31,4 +31,12 @@ func setupSchoolRoutes(api fiber.Router) {
 	school.Get("/students", schoolCtrl.GetStudents)
 	school.Put("/students/:id", schoolCtrl.UpdateStudent)
 	school.Delete("/students/:id", schoolCtrl.DeleteStudent)
+
+	school.Get("/pending-delivery", schoolCtrl.GetPendingDelivery)
+	school.Post("/delivery-receipt", schoolCtrl.ConfirmDelivery)
+
+	school.Get("/teachers", schoolCtrl.GetTeachers)
+	school.Post("/teachers", schoolCtrl.AddTeacher)
+	school.Put("/teachers/:id", schoolCtrl.UpdateTeacher)
+	school.Delete("/teachers/:id", schoolCtrl.DeleteTeacher)
 }

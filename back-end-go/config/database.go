@@ -55,7 +55,6 @@ func ConnectDB() {
 		&models.Student{},
 		&models.Allergy{},
 		&models.FoodReport{},
-		&models.FoodDistribution{},
 		&models.DailyMenuPlan{},
 		&models.AllergyAlternativeSuggestion{},
 		&models.StudentAllergy{},
@@ -64,6 +63,9 @@ func ConnectDB() {
 		&models.SchoolClass{},
 		&models.DeliveryReport{},
 		&models.DeliveryMenuItem{},
+		&models.SppgFoodProblem{},
+		&models.Teacher{},
+		&models.PasswordReset{},
 	)
 
 	if err != nil {

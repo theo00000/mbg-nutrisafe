@@ -85,6 +85,39 @@ func SendStudentAccountList(toEmail, schoolName string, accounts []StudentAccoun
 	return smtp.SendMail(host+":"+port, auth, from, []string{toEmail}, []byte(msg))
 }
 
+func SendPasswordResetCode(toEmail, code string) error {
+	host := os.Getenv("SMTP_HOST")
+	port := os.Getenv("SMTP_PORT")
+	user := os.Getenv("SMTP_USER")
+	pass := os.Getenv("SMTP_PASSWORD")
+	from := os.Getenv("SMTP_FROM")
+
+	if host == "" || port == "" || user == "" || pass == "" {
+		return fmt.Errorf("konfigurasi SMTP belum lengkap")
+	}
+
+	auth := smtp.PlainAuth("", user, pass, host)
+
+	subject := "Kode Reset Password NutriSafe"
+	body := fmt.Sprintf(
+		"Halo!\r\n\r\n"+
+			"Kami menerima permintaan untuk mereset password akun NutriSafe Anda.\r\n"+
+			"Berikut adalah kode verifikasi Anda:\r\n\r\n"+
+			"  %s\r\n\r\n"+
+			"Kode ini berlaku selama 15 menit.\r\n"+
+			"Jika Anda tidak meminta reset password, abaikan email ini.\r\n\r\n"+
+			"Salam,\r\nTim NutriSafe",
+		code,
+	)
+
+	msg := fmt.Sprintf(
+		"From: NutriSafe <%s>\r\nTo: %s\r\nSubject: %s\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n%s",
+		from, toEmail, subject, body,
+	)
+
+	return smtp.SendMail(host+":"+port, auth, from, []string{toEmail}, []byte(msg))
+}
+
 func SendSchoolCredentials(toEmail, schoolName, loginEmail, password string) error {
 	host := os.Getenv("SMTP_HOST")
 	port := os.Getenv("SMTP_PORT")

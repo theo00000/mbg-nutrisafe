@@ -32,10 +32,11 @@ func GetDeliveryReports(c *fiber.Ctx) error {
 	year := c.Query("year")
 
 	query := config.DB.Where("sppg_id = ?", userID).Order("delivery_date desc")
-	if month != "" && year != "" {
-		query = query.Where("MONTH(delivery_date) = ? AND YEAR(delivery_date) = ?", month, year)
-	} else if year != "" {
-		query = query.Where("YEAR(delivery_date) = ?", year)
+	if month != "" {
+		query = query.Where("EXTRACT(MONTH FROM delivery_date) = ?", month)
+	}
+	if year != "" {
+		query = query.Where("EXTRACT(YEAR FROM delivery_date) = ?", year)
 	}
 
 	var reports []models.DeliveryReport

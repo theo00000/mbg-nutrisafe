@@ -25,4 +25,7 @@ func setupsppgRoutes(api fiber.Router) {
 	route.Get("/delivery-reports", sppgCtrl.GetDeliveryReports)
 	route.Get("/delivery-reports/:id", sppgCtrl.GetDeliveryReportDetail)
 	route.Post("/delivery-reports", sppgCtrl.CreateDeliveryReport)
+
+	route.Post("/food-problems", sppgCtrl.CreateFoodProblem)
+	route.Get("/food-reports", sppgCtrl.GetSchoolFoodReports)
 }

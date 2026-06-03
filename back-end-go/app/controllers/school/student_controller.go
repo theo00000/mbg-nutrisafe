@@ -63,11 +63,19 @@ func AddStudent(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan data siswa."})
 	}
 
+	syncStudentCount(schoolID)
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Data siswa berhasil disimpan.",
 		"data":    student,
 	})
+}
+
+func syncStudentCount(schoolID uint) {
+	var count int64
+	config.DB.Model(&models.Student{}).Where("school_id = ?", schoolID).Count(&count)
+	config.DB.Model(&models.SchoolProfile{}).Where("user_id = ?", schoolID).Update("student_count", count)
 }
 
 func UpdateStudent(c *fiber.Ctx) error {
@@ -157,6 +165,7 @@ func DeleteStudent(c *fiber.Ctx) error {
 	}
 
 	config.DB.Delete(&student)
+	syncStudentCount(schoolID)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "message": "Data siswa berhasil dihapus."})
 }
