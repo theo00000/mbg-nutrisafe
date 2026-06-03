@@ -30,6 +30,41 @@ type ForgotPasswordRequestInput struct {
 	Email string `json:"email"`
 }
 
+// resolveUserByEmail mencari user berdasarkan email yang diinput. Karena login email
+// untuk role school/sppg di-generate sistem (xxx@sch.id / xxx@nutrisafe.id) sementara
+// user mengingat email pribadinya, lookup dilakukan berurutan ke:
+//   1. users.email                          (umum/admin: login pakai email asli)
+//   2. school_profiles.contact_email        (school: email pribadi guru)
+//   3. sppg_profiles.contact_email          (sppg: email pribadi PIC)
+// Mengembalikan user record, deliveryEmail (alamat inbox real untuk kirim kode), dan flag found.
+func resolveUserByEmail(input string) (models.User, string, bool) {
+	email := strings.TrimSpace(strings.ToLower(input))
+	if email == "" {
+		return models.User{}, "", false
+	}
+
+	var user models.User
+	if err := config.DB.Where("LOWER(email) = ?", email).First(&user).Error; err == nil {
+		return user, user.Email, true
+	}
+
+	var schoolProfile models.SchoolProfile
+	if err := config.DB.Where("LOWER(contact_email) = ?", email).First(&schoolProfile).Error; err == nil {
+		if err := config.DB.First(&user, schoolProfile.UserID).Error; err == nil {
+			return user, schoolProfile.ContactEmail, true
+		}
+	}
+
+	var sppgProfile models.SppgProfile
+	if err := config.DB.Where("LOWER(contact_email) = ?", email).First(&sppgProfile).Error; err == nil {
+		if err := config.DB.First(&user, sppgProfile.UserID).Error; err == nil {
+			return user, sppgProfile.ContactEmail, true
+		}
+	}
+
+	return models.User{}, "", false
+}
+
 // RequestPasswordReset menerima email, generate kode 6-digit, simpan hash + kirim email.
 // Selalu balas sukses untuk mencegah enumeration.
 func RequestPasswordReset(c *fiber.Ctx) error {
@@ -38,8 +73,8 @@ func RequestPasswordReset(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Format request tidak valid."})
 	}
 
-	email := strings.TrimSpace(strings.ToLower(input.Email))
-	if email == "" {
+	inputEmail := strings.TrimSpace(strings.ToLower(input.Email))
+	if inputEmail == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Email wajib diisi."})
 	}
 
@@ -48,8 +83,8 @@ func RequestPasswordReset(c *fiber.Ctx) error {
 		"message": "Jika email terdaftar, kode verifikasi akan dikirim ke email tersebut.",
 	}
 
-	var user models.User
-	if err := config.DB.Where("LOWER(email) = ?", email).First(&user).Error; err != nil {
+	user, deliveryEmail, found := resolveUserByEmail(inputEmail)
+	if !found {
 		return c.Status(fiber.StatusOK).JSON(successResp)
 	}
 
@@ -63,13 +98,16 @@ func RequestPasswordReset(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal mengenkripsi kode verifikasi."})
 	}
 
-	// Invalidasi semua reset code sebelumnya untuk email ini
+	// PasswordReset.Email disimpan dengan canonical login email (users.email) supaya
+	// verify step konsisten apapun email yang diinput user.
+	canonicalEmail := strings.ToLower(user.Email)
+
 	config.DB.Model(&models.PasswordReset{}).
-		Where("email = ? AND used = ?", email, false).
+		Where("email = ? AND used = ?", canonicalEmail, false).
 		Update("used", true)
 
 	reset := models.PasswordReset{
-		Email:     email,
+		Email:     canonicalEmail,
 		CodeHash:  string(hash),
 		ExpiresAt: time.Now().Add(resetCodeTTL),
 	}
@@ -78,8 +116,8 @@ func RequestPasswordReset(c *fiber.Ctx) error {
 	}
 
 	go func() {
-		if err := utils.SendPasswordResetCode(user.Email, code); err != nil {
-			fmt.Printf("[mailer] gagal kirim reset code ke %s: %v\n", user.Email, err)
+		if err := utils.SendPasswordResetCode(deliveryEmail, code); err != nil {
+			fmt.Printf("[mailer] gagal kirim reset code ke %s: %v\n", deliveryEmail, err)
 		}
 	}()
 
@@ -98,18 +136,24 @@ func VerifyPasswordReset(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Format request tidak valid."})
 	}
 
-	email := strings.TrimSpace(strings.ToLower(input.Email))
+	inputEmail := strings.TrimSpace(strings.ToLower(input.Email))
 	code := strings.TrimSpace(input.Code)
-	if email == "" || code == "" || input.NewPassword == "" {
+	if inputEmail == "" || code == "" || input.NewPassword == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Email, kode verifikasi, dan password baru wajib diisi."})
 	}
 	if len(input.NewPassword) < 8 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Password baru minimal 8 karakter."})
 	}
 
+	user, _, found := resolveUserByEmail(inputEmail)
+	if !found {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "Kode verifikasi tidak valid atau sudah kadaluarsa."})
+	}
+	canonicalEmail := strings.ToLower(user.Email)
+
 	var reset models.PasswordReset
 	if err := config.DB.
-		Where("email = ? AND used = ?", email, false).
+		Where("email = ? AND used = ?", canonicalEmail, false).
 		Order("created_at desc").
 		First(&reset).Error; err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "Kode verifikasi tidak valid atau sudah kadaluarsa."})
@@ -128,11 +172,6 @@ func VerifyPasswordReset(c *fiber.Ctx) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(reset.CodeHash), []byte(code)); err != nil {
 		config.DB.Model(&reset).Update("attempts", reset.Attempts+1)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "Kode verifikasi tidak sesuai."})
-	}
-
-	var user models.User
-	if err := config.DB.Where("LOWER(email) = ?", email).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "error", "message": "Akun tidak ditemukan."})
 	}
 
 	newHash, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.DefaultCost)
