@@ -69,7 +69,7 @@ func SendStudentAccountList(toEmail, schoolName string, accounts []StudentAccoun
 	subject := fmt.Sprintf("Daftar Akun Siswa NutriSafe - %s", schoolName)
 	body := fmt.Sprintf(
 		"Halo %s!\r\n\r\n"+
-			"Masa pengisian data siswa selama 7 hari telah selesai.\r\n"+
+			"Masa pengisian data siswa selama 15 menit telah selesai.\r\n"+
 			"Berikut adalah daftar akun login untuk masing-masing siswa:\r\n\r\n"+
 			"%s"+
 			"Harap sampaikan informasi akun ini kepada masing-masing siswa.\r\n\r\n"+
