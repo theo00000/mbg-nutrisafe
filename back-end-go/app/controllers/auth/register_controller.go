@@ -16,12 +16,11 @@ import (
 )
 
 type RegisterInput struct {
-	Name               string `json:"name"`
-	Email              string `json:"email"`
-	Phone              string `json:"phone"`
-	Password           string `json:"password"`
-	RoleName           string `json:"role_name"`
-	RegistrationSecret string `json:"registration_secret"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Password string `json:"password"`
+	RoleName string `json:"role_name"`
 }
 
 func Register(c *fiber.Ctx) error {
@@ -60,23 +59,6 @@ func Register(c *fiber.Ctx) error {
 			"status":  "error",
 			"message": "Role tidak valid! Pilihan yang tersedia: school, umum.",
 		})
-	}
-
-	if input.RoleName == "admin" {
-		expected := os.Getenv("ADMIN_REGISTRATION_SECRET")
-		if expected == "" {
-			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Registrasi admin saat ini dinonaktifkan.",
-			})
-		}
-		headerSecret := c.Get("X-Registration-Secret")
-		if input.RegistrationSecret != expected && headerSecret != expected {
-			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Kode registrasi admin tidak valid.",
-			})
-		}
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
