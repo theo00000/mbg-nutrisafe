@@ -9,8 +9,8 @@ type User struct {
 	Phone        string    `gorm:"type:varchar(20);not null" json:"phone"`
 	PasswordHash string    `gorm:"not null" json:"-"`
 	RoleName     string    `gorm:"type:varchar(50);not null" json:"role_name"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	CreatedAt    time.Time `json:"-"`
+	UpdatedAt    time.Time `json:"-"`
 }
 
 type Role struct {
@@ -46,14 +46,14 @@ type SppgRegistration struct {
 	ID                 uint      `gorm:"primaryKey" json:"id"`
 	RegistrantName     string    `gorm:"type:varchar(100);not null" json:"registrant_name"`
 	InstitutionName    string    `gorm:"type:varchar(100)" json:"institution_name"`
-	NikNpwp            string    `gorm:"type:varchar(100);not null" json:"nik_npwp"`
+	NikNpwp            string    `gorm:"type:varchar(100);not null" json:"-"`
 	Email              string    `gorm:"type:varchar(100);not null" json:"email"`
 	Phone              string    `gorm:"type:varchar(20);not null" json:"phone"`
 	SppgName           string    `gorm:"type:varchar(100);not null" json:"sppg_name"`
 	SppgAddress        string    `gorm:"type:text;not null" json:"sppg_address"`
 	ProductionCapacity int       `gorm:"not null" json:"production_capacity"`
-	ProposalPath       string    `gorm:"type:varchar(255);not null" json:"proposal_path"`
-	KitchenPhotoPath   string    `gorm:"type:varchar(255);not null" json:"kitchen_photo_path"`
+	ProposalPath       string    `gorm:"type:varchar(255);not null" json:"-"`
+	KitchenPhotoPath   string    `gorm:"type:varchar(255);not null" json:"-"`
 	Status             string    `gorm:"type:varchar(20);default:'pending'" json:"status"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`

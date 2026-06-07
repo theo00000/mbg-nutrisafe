@@ -11,8 +11,8 @@ type Student struct {
 	Gender           string    `gorm:"type:varchar(20)" json:"gender"`
 	Address          string    `gorm:"type:text" json:"address"`
 	AccountGenerated bool      `gorm:"default:false" json:"account_generated"`
-	UserID           *uint     `json:"user_id"`
-	ParentID         *uint     `json:"parent_id"`
+	UserID           *uint     `json:"-"`
+	ParentID         *uint     `json:"-"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 

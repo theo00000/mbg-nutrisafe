@@ -107,7 +107,7 @@ func UpdateRegistrationStatus(c *fiber.Ctx) error {
 	}
 
 	if input.Status == "disetujui" {
-		tempPassword, user, err := createsppgUserFromRegistration(registration)
+		_, user, err := createsppgUserFromRegistration(registration)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"status":  "error",
@@ -116,12 +116,11 @@ func UpdateRegistrationStatus(c *fiber.Ctx) error {
 		}
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"status":  "success",
-			"message": "Pendaftaran disetujui. Akun sppg berhasil dibuat.",
+			"message": "Pendaftaran disetujui. Akun sppg berhasil dibuat. Kredensial login telah dikirim ke email PIC.",
 			"data": fiber.Map{
 				"registration": registration,
 				"user_id":      user.ID,
 				"email":        user.Email,
-				"temp_password": tempPassword,
 			},
 		})
 	}
