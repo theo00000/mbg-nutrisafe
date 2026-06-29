@@ -4,12 +4,34 @@ import (
 	"back-end/app/middleware"
 	"back-end/app/models"
 	"back-end/config"
+	"fmt"
 	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 var onlyDigits = regexp.MustCompile(`^\d+$`)
+
+var sdRomanMap = map[string]int{
+	"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6,
+}
+
+func normalizeClassForGrade(class, grade string) string {
+	if grade != "SD/MI" {
+		return class
+	}
+	parts := strings.SplitN(class, "-", 2)
+	prefix := strings.ToUpper(strings.TrimSpace(parts[0]))
+	if num, ok := sdRomanMap[prefix]; ok {
+		if len(parts) > 1 {
+			return fmt.Sprintf("%d-%s", num, strings.TrimSpace(parts[1]))
+		}
+		return strconv.Itoa(num)
+	}
+	return class
+}
 
 type StudentInput struct {
 	Name    string `json:"name"`
@@ -50,6 +72,10 @@ func ImportStudents(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Maksimal 1000 data siswa per import."})
 	}
 
+	var schoolProfile models.SchoolProfile
+	config.DB.Where("user_id = ?", schoolID).First(&schoolProfile)
+	schoolGrade := schoolProfile.Grade
+
 	nisnList := make([]string, 0, len(input.Students))
 	for _, s := range input.Students {
 		if s.NISN != "" {
@@ -71,6 +97,7 @@ func ImportStudents(c *fiber.Ctx) error {
 	successCount, skipCount, errorCount := 0, 0, 0
 
 	for i, s := range input.Students {
+		s.Class = normalizeClassForGrade(s.Class, schoolGrade)
 		res := ImportResult{Row: i + 2, NISN: s.NISN, Name: s.Name}
 
 		if s.Name == "" || s.NISN == "" || s.Class == "" || s.Gender == "" {
