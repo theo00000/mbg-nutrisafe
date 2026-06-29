@@ -19,6 +19,154 @@ type StudentInput struct {
 	Address string `json:"address"`
 }
 
+type BulkStudentInput struct {
+	Students []StudentInput `json:"students"`
+}
+
+type ImportResult struct {
+	Row     int    `json:"row"`
+	NISN    string `json:"nisn"`
+	Name    string `json:"name"`
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"`
+}
+
+func ImportStudents(c *fiber.Ctx) error {
+	schoolID, err := middleware.GetUserIDFromToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	var input BulkStudentInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Format request tidak valid."})
+	}
+
+	if len(input.Students) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Tidak ada data siswa untuk diimport."})
+	}
+
+	if len(input.Students) > 1000 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Maksimal 1000 data siswa per import."})
+	}
+
+	nisnList := make([]string, 0, len(input.Students))
+	for _, s := range input.Students {
+		if s.NISN != "" {
+			nisnList = append(nisnList, s.NISN)
+		}
+	}
+	existingNISNs := map[string]bool{}
+	if len(nisnList) > 0 {
+		var found []string
+		config.DB.Model(&models.Student{}).Where("nisn IN ?", nisnList).Pluck("nisn", &found)
+		for _, n := range found {
+			existingNISNs[n] = true
+		}
+	}
+
+	results := make([]ImportResult, 0, len(input.Students))
+	toInsert := make([]models.Student, 0, len(input.Students))
+	seenInBatch := map[string]bool{}
+	successCount, skipCount, errorCount := 0, 0, 0
+
+	for i, s := range input.Students {
+		res := ImportResult{Row: i + 2, NISN: s.NISN, Name: s.Name}
+
+		if s.Name == "" || s.NISN == "" || s.Class == "" || s.Gender == "" {
+			res.Status = "error"
+			res.Message = "Kolom Nama, NISN, Kelas, dan Jenis Kelamin wajib diisi."
+			results = append(results, res)
+			errorCount++
+			continue
+		}
+		if len(s.NISN) != 10 || !onlyDigits.MatchString(s.NISN) {
+			res.Status = "error"
+			res.Message = "NISN harus terdiri dari 10 digit angka."
+			results = append(results, res)
+			errorCount++
+			continue
+		}
+		if s.Gender != "Laki-laki" && s.Gender != "Perempuan" {
+			res.Status = "error"
+			res.Message = "Jenis kelamin harus 'Laki-laki' atau 'Perempuan'."
+			results = append(results, res)
+			errorCount++
+			continue
+		}
+		if existingNISNs[s.NISN] || seenInBatch[s.NISN] {
+			res.Status = "skipped"
+			res.Message = "NISN sudah terdaftar."
+			results = append(results, res)
+			skipCount++
+			continue
+		}
+
+		toInsert = append(toInsert, models.Student{
+			SchoolID: schoolID,
+			Name:     s.Name,
+			NISN:     s.NISN,
+			Class:    s.Class,
+			Gender:   s.Gender,
+			Address:  s.Address,
+		})
+		seenInBatch[s.NISN] = true
+
+		res.Status = "success"
+		results = append(results, res)
+		successCount++
+	}
+
+	classesCreated := 0
+	if len(toInsert) > 0 {
+		classSet := map[string]bool{}
+		classList := make([]string, 0)
+		for _, s := range toInsert {
+			if !classSet[s.Class] {
+				classSet[s.Class] = true
+				classList = append(classList, s.Class)
+			}
+		}
+		var existingClasses []string
+		config.DB.Model(&models.SchoolClass{}).
+			Where("school_id = ? AND name IN ?", schoolID, classList).
+			Pluck("name", &existingClasses)
+		existingClassSet := map[string]bool{}
+		for _, n := range existingClasses {
+			existingClassSet[n] = true
+		}
+		newClasses := make([]models.SchoolClass, 0)
+		for _, name := range classList {
+			if !existingClassSet[name] {
+				newClasses = append(newClasses, models.SchoolClass{SchoolID: schoolID, Name: name})
+			}
+		}
+		if len(newClasses) > 0 {
+			if err := config.DB.Create(&newClasses).Error; err == nil {
+				classesCreated = len(newClasses)
+			}
+		}
+
+		if err := config.DB.CreateInBatches(&toInsert, 100).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan data siswa ke database."})
+		}
+		syncStudentCount(schoolID)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Proses import selesai.",
+		"summary": fiber.Map{
+			"total":           len(input.Students),
+			"success":         successCount,
+			"skipped":         skipCount,
+			"error":           errorCount,
+			"classes_created": classesCreated,
+		},
+		"results": results,
+	})
+}
+
 func AddStudent(c *fiber.Ctx) error {
 	schoolID, err := middleware.GetUserIDFromToken(c)
 	if err != nil {

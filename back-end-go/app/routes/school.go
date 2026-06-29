@@ -28,6 +28,7 @@ func setupSchoolRoutes(api fiber.Router) {
 	school.Delete("/classes/:id", schoolCtrl.DeleteClass)
 
 	school.Post("/students", schoolCtrl.AddStudent)
+	school.Post("/students/bulk", schoolCtrl.ImportStudents)
 	school.Get("/students", schoolCtrl.GetStudents)
 	school.Put("/students/:id", schoolCtrl.UpdateStudent)
 	school.Delete("/students/:id", schoolCtrl.DeleteStudent)
