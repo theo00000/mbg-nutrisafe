@@ -253,6 +253,19 @@ func syncStudentCount(schoolID uint) {
 	config.DB.Model(&models.SchoolProfile{}).Where("user_id = ?", schoolID).Update("student_count", count)
 }
 
+func cleanupOrphanClasses(schoolID uint) {
+	var usedClasses []string
+	config.DB.Model(&models.Student{}).
+		Where("school_id = ?", schoolID).
+		Distinct("class").
+		Pluck("class", &usedClasses)
+	if len(usedClasses) == 0 {
+		config.DB.Where("school_id = ?", schoolID).Delete(&models.SchoolClass{})
+		return
+	}
+	config.DB.Where("school_id = ? AND name NOT IN ?", schoolID, usedClasses).Delete(&models.SchoolClass{})
+}
+
 func UpdateStudent(c *fiber.Ctx) error {
 	schoolID, err := middleware.GetUserIDFromToken(c)
 	if err != nil {
@@ -341,6 +354,7 @@ func DeleteStudent(c *fiber.Ctx) error {
 
 	config.DB.Delete(&student)
 	syncStudentCount(schoolID)
+	cleanupOrphanClasses(schoolID)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "message": "Data siswa berhasil dihapus."})
 }
