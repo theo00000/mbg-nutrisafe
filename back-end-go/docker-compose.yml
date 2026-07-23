@@ -24,6 +24,11 @@ services:
       - "8000:8000"
     env_file:
       - ../../NutritionModel/.env
+    # Mount api.py dari host → edit langsung apply tanpa rebuild image.
+    volumes:
+      - ../../NutritionModel/api.py:/app/api.py
+    # --reload: uvicorn watch api.py, auto-restart saat file berubah.
+    command: uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 
   backend:
     build: .

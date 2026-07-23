@@ -46,7 +46,10 @@ func callMLService(imageData []byte, filename string) (*mlPrediction, error) {
 	}
 	writer.Close()
 
-	resp, err := http.Post(mlURL+"/predict", writer.FormDataContentType(), &buf)
+	// Timeout > worst-case ML (retry 503 Gemini + timeout HTTP 30s/attempt),
+	// tapi tetap batasi agar request tak hang selamanya kalau ML macet.
+	client := &http.Client{Timeout: 90 * time.Second}
+	resp, err := client.Post(mlURL+"/predict", writer.FormDataContentType(), &buf)
 	if err != nil {
 		return nil, fmt.Errorf("ML service tidak dapat dijangkau: %w", err)
 	}
