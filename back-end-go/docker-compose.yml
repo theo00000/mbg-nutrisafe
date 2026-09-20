@@ -1,18 +1,31 @@
 name: nutrisafe
 
+# Stack back-end saja: backend Go + ML service.
+# Front-end punya compose sendiri di ../../Nutrisafe-FE/docker-compose.yml,
+# yang join ke network `nutrisafe-net` di bawah sebagai external.
+#
+# Port di-bind ke 127.0.0.1 saja. Di VPS, trafik publik masuk lewat nginx host
+# (deploy/nginx/nutrisafe.conf), tidak langsung ke container.
+
 services:
+  # Postgres lokal. Tidak ikut jalan secara default — DATABASE_URL di .env
+  # menunjuk ke Supabase. Aktifkan hanya untuk dev offline:
+  #   docker compose --profile local up -d
   db:
     image: postgres:15-alpine
     container_name: nutrisafe-db
+    profiles: ["local"]
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data 
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - nutrisafe-net
 
   ml-service:
     build:
@@ -21,31 +34,34 @@ services:
     container_name: nutrisafe-ml
     restart: always
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     env_file:
       - ../../NutritionModel/.env
-    # Mount api.py dari host → edit langsung apply tanpa rebuild image.
-    volumes:
-      - ../../NutritionModel/api.py:/app/api.py
-    # --reload: uvicorn watch api.py, auto-restart saat file berubah.
-    command: uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - nutrisafe-net
 
   backend:
     build: .
     container_name: nutrisafe-backend
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
-      - db
+      - ml-service
     env_file:
       - .env
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PASSWORD: ${DB_PASSWORD}
-      ML_SERVICE_URL: http://host.docker.internal:8000
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      # Satu network, jadi ML dipanggil lewat nama service.
+      ML_SERVICE_URL: http://ml-service:8000
+    networks:
+      - nutrisafe-net
 
 volumes:
   pgdata:
+
+networks:
+  # `name:` mengunci nama network supaya compose FE bisa merujuknya
+  # sebagai external. Tanpa ini namanya jadi `nutrisafe_nutrisafe-net`.
+  nutrisafe-net:
+    name: nutrisafe-net
+    driver: bridge
