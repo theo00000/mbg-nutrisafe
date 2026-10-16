@@ -51,6 +51,8 @@ func ConnectDB() {
 		&models.SppgProfile{},
 		&models.Menu{},
 		&models.MenuReport{},
+		&models.MenuReportIngredient{},
+		&models.MenuReportRecommendation{},
 		&models.Ingredient{},
 		&models.Student{},
 		&models.Allergy{},
@@ -66,6 +68,7 @@ func ConnectDB() {
 		&models.SppgFoodProblem{},
 		&models.Teacher{},
 		&models.PasswordReset{},
+		&models.Notification{},
 	)
 
 	if err != nil {

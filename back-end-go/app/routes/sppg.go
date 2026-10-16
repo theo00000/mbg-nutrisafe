@@ -20,7 +20,9 @@ func setupsppgRoutes(api fiber.Router) {
 	route.Get("/allergy-dashboard", sppgCtrl.GetAllergyDashboard)
 
 	route.Post("/scan", sppgCtrl.ScanMenu)
+	route.Post("/scan/recommend", sppgCtrl.RecommendMenu)
 	route.Post("/menu-reports", sppgCtrl.SubmitMenuReport)
+	route.Get("/menu-reports/today", sppgCtrl.GetTodayMenuReport)
 
 	route.Get("/delivery-reports", sppgCtrl.GetDeliveryReports)
 	route.Get("/delivery-reports/:id", sppgCtrl.GetDeliveryReportDetail)
