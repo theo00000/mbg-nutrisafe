@@ -35,6 +35,16 @@ func main() {
 
 	app.Use(logger.New())
 
+	// Foto laporan & bukti pengiriman disimpan ke ./uploads oleh controller.
+	// Tanpa ini klien cuma menerima path disk yang tidak bisa dibuka.
+	// Browse dimatikan supaya isi direktori tidak bisa diintip.
+	os.MkdirAll("./uploads", os.ModePerm)
+	app.Static("/uploads", "./uploads", fiber.Static{
+		Browse:   false,
+		MaxAge:   86400,
+		Download: false,
+	})
+
 	routes.SetupRoutes(app)
 
 	port := os.Getenv("PORT")

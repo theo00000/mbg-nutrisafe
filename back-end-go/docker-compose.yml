@@ -53,11 +53,16 @@ services:
     environment:
       # Satu network, jadi ML dipanggil lewat nama service.
       ML_SERVICE_URL: http://ml-service:8000
+    volumes:
+      # Foto laporan/pengiriman ditulis ke /app/uploads. Tanpa volume,
+      # semua foto hilang setiap kali image di-rebuild.
+      - uploads:/app/uploads
     networks:
       - nutrisafe-net
 
 volumes:
   pgdata:
+  uploads:
 
 networks:
   # `name:` mengunci nama network supaya compose FE bisa merujuknya
