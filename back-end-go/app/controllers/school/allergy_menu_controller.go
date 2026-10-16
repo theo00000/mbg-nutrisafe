@@ -4,6 +4,7 @@ import (
 	"back-end/app/middleware"
 	"back-end/app/models"
 	"back-end/config"
+	"back-end/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,7 +27,7 @@ func GetAllergyMenu(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Format tanggal tidak valid. Gunakan YYYY-MM-DD."})
 		}
 	} else {
-		targetDate = time.Now().Truncate(24 * time.Hour)
+		targetDate = utils.Today()
 	}
 
 	// Cari delivery report untuk sekolah ini pada tanggal yang diminta

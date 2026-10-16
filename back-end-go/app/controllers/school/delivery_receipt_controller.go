@@ -3,7 +3,9 @@ package school
 import (
 	"back-end/app/middleware"
 	"back-end/app/models"
+	"back-end/app/services"
 	"back-end/config"
+	"back-end/utils"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -95,6 +97,24 @@ func ConfirmDelivery(c *fiber.Ctx) error {
 	if err := config.DB.Save(&report).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan konfirmasi."})
 	}
+
+	// SPPG perlu tahu kirimannya sudah sampai, terutama kalau porsi yang
+	// diterima tidak sama dengan yang dikirim.
+	var schoolUser models.User
+	config.DB.Select("id, name").First(&schoolUser, userID)
+	body := fmt.Sprintf("%s mengkonfirmasi menerima %d porsi untuk tanggal %s.",
+		schoolUser.Name, received, utils.TanggalID(report.DeliveryDate))
+	if received != report.TotalPortions {
+		body += fmt.Sprintf(" Dikirim %d porsi — ada selisih %d.",
+			report.TotalPortions, report.TotalPortions-received)
+	}
+	services.Notify(
+		report.SppgID,
+		models.NotifPengirimanDiterima,
+		"Makanan Telah Diterima",
+		body,
+		"delivery_report", report.ID,
+	)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  "success",

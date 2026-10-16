@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+
+	"back-end/utils"
+)
 
 type DeliveryReport struct {
 	ID                  uint               `gorm:"primaryKey" json:"id"`
@@ -15,6 +20,15 @@ type DeliveryReport struct {
 	CreatedAt           time.Time          `json:"created_at"`
 	UpdatedAt           time.Time          `json:"updated_at"`
 	Items               []DeliveryMenuItem `gorm:"foreignKey:DeliveryReportID" json:"items,omitempty"`
+}
+
+// MarshalJSON menukar kedua path foto ke URL publik. Lihat FoodReport.MarshalJSON.
+func (d DeliveryReport) MarshalJSON() ([]byte, error) {
+	type alias DeliveryReport
+	out := alias(d)
+	out.Photo1Path = utils.PublicURL(d.Photo1Path)
+	out.Photo2Path = utils.PublicURL(d.Photo2Path)
+	return json.Marshal(out)
 }
 
 type DeliveryMenuItem struct {

@@ -3,7 +3,9 @@ package sppg
 import (
 	"back-end/app/middleware"
 	"back-end/app/models"
+	"back-end/app/services"
 	"back-end/config"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -54,13 +56,34 @@ func AssignSchools(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "school_ids tidak valid"})
 	}
 
+	// Catat sekolah mana yang benar-benar berubah: permintaan bisa memuat
+	// sekolah yang sudah punya mitra, dan sekolah itu tidak boleh dikabari.
+	var assignedIDs []uint
+	config.DB.Model(&models.SchoolProfile{}).
+		Where("user_id IN ? AND sppg_user_id IS NULL", body.SchoolIDs).
+		Pluck("user_id", &assignedIDs)
+
 	if err := config.DB.Model(&models.SchoolProfile{}).
 		Where("user_id IN ? AND sppg_user_id IS NULL", body.SchoolIDs).
 		Update("sppg_user_id", userID).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal menetapkan sekolah."})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "message": "Sekolah berhasil ditambahkan."})
+	var sppgUser models.User
+	config.DB.Select("id, name").First(&sppgUser, userID)
+	services.NotifyMany(
+		assignedIDs,
+		models.NotifKemitraan,
+		"Mitra SPPG Ditetapkan",
+		fmt.Sprintf("%s kini menjadi mitra SPPG sekolah Anda. Laporan makanan akan diteruskan ke mereka.", sppgUser.Name),
+		"sppg", userID,
+	)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":   "success",
+		"message":  "Sekolah berhasil ditambahkan.",
+		"assigned": len(assignedIDs),
+	})
 }
 
 func GetsppgSchools(c *fiber.Ctx) error {

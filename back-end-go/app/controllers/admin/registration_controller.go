@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"back-end/app/models"
+	"back-end/app/services"
 	"back-end/config"
 	"back-end/utils"
 
@@ -114,6 +115,16 @@ func UpdateRegistrationStatus(c *fiber.Ctx) error {
 				"message": "Status disetujui, tapi gagal membuat akun sppg: " + err.Error(),
 			})
 		}
+		// Akun baru dibuat saat ini juga, jadi notifikasi sambutan menunggu
+		// mereka begitu login pertama kali dengan kredensial dari email.
+		services.Notify(
+			user.ID,
+			models.NotifPendaftaran,
+			"Pendaftaran Disetujui",
+			"Selamat! Pendaftaran SPPG "+registration.SppgName+" telah disetujui. Anda sudah bisa menambahkan sekolah binaan.",
+			"sppg_registration", registration.ID,
+		)
+
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"status":  "success",
 			"message": "Pendaftaran disetujui. Akun sppg berhasil dibuat. Kredensial login telah dikirim ke email PIC.",

@@ -3,7 +3,9 @@ package school
 import (
 	"back-end/app/middleware"
 	"back-end/app/models"
+	"back-end/app/services"
 	"back-end/config"
+	"back-end/utils"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -107,6 +109,7 @@ func CreateFoodReport(c *fiber.Ctx) error {
 	report := models.FoodReport{
 		SchoolID:    userID,
 		SppgID:      *profile.SppgUserID,
+		ReporterID:  userID,
 		IssueType:   issueType,
 		Description: description,
 		PhotoURL:    photoURL,
@@ -118,15 +121,67 @@ func CreateFoodReport(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan laporan."})
 	}
 
+	notifyFoodReportCreated(report)
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Laporan berhasil dikirim.",
-		"data": fiber.Map{
-			"id":          report.ID,
-			"issue_type":  report.IssueType,
-			"report_date": reportDate.Format("2006-01-02"),
-			"status":      report.Status,
-		},
+		"data":    services.BuildFoodReportDetail(report),
+	})
+}
+
+// notifyFoodReportCreated memberi tahu pengirim bahwa laporannya masuk, dan
+// meneruskan laporan itu ke SPPG terkait serta admin BGN.
+func notifyFoodReportCreated(report models.FoodReport) {
+	var sppgUser models.User
+	config.DB.Select("id, name").First(&sppgUser, report.SppgID)
+	var schoolUser models.User
+	config.DB.Select("id, name").First(&schoolUser, report.SchoolID)
+
+	tanggal := utils.TanggalID(report.ReportDate)
+
+	services.Notify(
+		report.ReporterID,
+		models.NotifLaporanTerkirim,
+		"Laporan Terkirim!",
+		fmt.Sprintf("Laporan makanan kepada %s pada tanggal %s berhasil terkirim!", sppgUser.Name, tanggal),
+		"food_report", report.ID,
+	)
+
+	services.Notify(
+		report.SppgID,
+		models.NotifLaporanMasuk,
+		"Laporan Masalah Baru",
+		fmt.Sprintf("%s melaporkan %s pada tanggal %s.",
+			schoolUser.Name, services.IssueTypeLabel(report.IssueType), tanggal),
+		"food_report", report.ID,
+	)
+
+	services.NotifyAdmins(
+		models.NotifLaporanMasuk,
+		"Laporan Masalah Baru",
+		fmt.Sprintf("%s melaporkan %s terhadap %s pada tanggal %s.",
+			schoolUser.Name, services.IssueTypeLabel(report.IssueType), sppgUser.Name, tanggal),
+		"food_report", report.ID,
+	)
+}
+
+// GetFoodReportDetail mengembalikan satu laporan milik sekolah ini.
+// Penyaringan school_id memastikan sekolah lain tidak bisa membuka laporannya.
+func GetFoodReportDetail(c *fiber.Ctx) error {
+	userID, err := middleware.GetUserIDFromToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	var report models.FoodReport
+	if err := config.DB.Where("id = ? AND school_id = ?", c.Params("id"), userID).First(&report).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "error", "message": "Laporan tidak ditemukan."})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status": "success",
+		"data":   services.BuildFoodReportDetail(report),
 	})
 }
 
@@ -141,12 +196,8 @@ func GetFoodReports(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data laporan."})
 	}
 
-	if reports == nil {
-		reports = []models.FoodReport{}
-	}
-
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status": "success",
-		"data":   reports,
+		"data":   services.BuildFoodReportDetails(reports),
 	})
 }

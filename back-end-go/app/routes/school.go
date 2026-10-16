@@ -20,6 +20,7 @@ func setupSchoolRoutes(api fiber.Router) {
 	school.Get("/sppg-info", schoolCtrl.GetAssignedsppg)
 	school.Post("/reports", schoolCtrl.CreateFoodReport)
 	school.Get("/reports", schoolCtrl.GetFoodReports)
+	school.Get("/reports/:id", schoolCtrl.GetFoodReportDetail)
 
 	school.Get("/allergy-menu", schoolCtrl.GetAllergyMenu)
 

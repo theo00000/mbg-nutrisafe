@@ -3,7 +3,9 @@ package sppg
 import (
 	"back-end/app/middleware"
 	"back-end/app/models"
+	"back-end/app/services"
 	"back-end/config"
+	"back-end/utils"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -81,6 +83,27 @@ func CreateFoodProblem(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan laporan."})
 	}
 
+	var sppgUser models.User
+	config.DB.Select("id, name").First(&sppgUser, userID)
+
+	services.Notify(
+		userID,
+		models.NotifLaporanTerkirim,
+		"Laporan Terkirim!",
+		fmt.Sprintf("Laporan masalah \"%s\" pada %s berhasil terkirim!", problemType, foodName),
+		"sppg_food_problem", problem.ID,
+	)
+
+	// Sekolah di sini hanya teks bebas, bukan relasi, jadi tidak bisa
+	// ditargetkan — laporan internal SPPG diteruskan ke admin BGN saja.
+	services.NotifyAdmins(
+		models.NotifLaporanMasuk,
+		"Masalah Makanan dari SPPG",
+		fmt.Sprintf("%s melaporkan \"%s\" pada %s untuk %s — %d porsi terdampak (prioritas %s).",
+			sppgUser.Name, problemType, foodName, schoolName, portions, priority),
+		"sppg_food_problem", problem.ID,
+	)
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Laporan masalah makanan berhasil dikirim.",
@@ -131,7 +154,7 @@ func GetSchoolFoodReports(c *fiber.Ctx) error {
 			Reporter:    school.Name,
 			IssueType:   r.IssueType,
 			Description: r.Description,
-			PhotoURL:    r.PhotoURL,
+			PhotoURL:    utils.PublicURL(r.PhotoURL),
 			Status:      r.Status,
 		})
 	}

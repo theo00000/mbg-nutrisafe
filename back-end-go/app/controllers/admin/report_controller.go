@@ -2,7 +2,10 @@ package admin
 
 import (
 	"back-end/app/models"
+	"back-end/app/services"
 	"back-end/config"
+	"back-end/utils"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -34,13 +37,9 @@ func GetReports(c *fiber.Ctx) error {
 		})
 	}
 
-	if reports == nil {
-		reports = []models.FoodReport{}
-	}
-
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status": "success",
-		"data":   reports,
+		"data":   services.BuildFoodReportDetails(reports),
 	})
 }
 
@@ -56,7 +55,7 @@ func GetReportDetail(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status": "success",
-		"data":   report,
+		"data":   services.BuildFoodReportDetail(report),
 	})
 }
 
@@ -99,9 +98,23 @@ func UpdateReportStatus(c *fiber.Ctx) error {
 		})
 	}
 
+	// Pelapor, sekolah, dan SPPG sama-sama berkepentingan atas tindak lanjut
+	// laporan. NotifyMany membuang ID kembar, jadi kalau sekolah yang melapor
+	// sendiri ia tetap hanya menerima satu baris.
+	services.NotifyMany(
+		[]uint{report.ReporterID, report.SchoolID, report.SppgID},
+		models.NotifLaporanDitinjau,
+		"Status Laporan Diperbarui",
+		fmt.Sprintf("Laporan %s tanggal %s kini berstatus \"%s\".",
+			services.IssueTypeLabel(report.IssueType),
+			utils.TanggalID(report.ReportDate),
+			services.ReportStatusLabel(input.Status)),
+		"food_report", report.ID,
+	)
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Status laporan berhasil diperbarui.",
-		"data":    report,
+		"data":    services.BuildFoodReportDetail(report),
 	})
 }

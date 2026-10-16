@@ -3,7 +3,9 @@ package sppg
 import (
 	"back-end/app/middleware"
 	"back-end/app/models"
+	"back-end/app/services"
 	"back-end/config"
+	"back-end/utils"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -141,8 +143,8 @@ func GetDeliveryReportDetail(c *fiber.Ctx) error {
 			},
 			"menu_items": report.Items,
 			"photos": fiber.Map{
-				"photo1": report.Photo1Path,
-				"photo2": report.Photo2Path,
+				"photo1": utils.PublicURL(report.Photo1Path),
+				"photo2": utils.PublicURL(report.Photo2Path),
 			},
 		},
 	})
@@ -232,7 +234,23 @@ func CreateDeliveryReport(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan item menu."})
 		}
 	}
-	tx.Commit()
+	if err := tx.Commit().Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan laporan."})
+	}
+
+	// Sekolah perlu diberi tahu: layar Penerimaan Makanan mengambil datanya
+	// dari pengiriman berstatus pending, dan tanpa notifikasi tidak ada yang
+	// memberi tahu bahwa kiriman sudah berangkat.
+	var sppgUser models.User
+	config.DB.Select("id, name").First(&sppgUser, userID)
+	services.Notify(
+		uint(schoolID),
+		models.NotifPengirimanDatang,
+		"Makanan Dalam Perjalanan",
+		fmt.Sprintf("%s mengirim %d porsi untuk tanggal %s. Konfirmasi setelah makanan diterima.",
+			sppgUser.Name, totalPortions, utils.TanggalID(deliveryDate)),
+		"delivery_report", report.ID,
+	)
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  "success",

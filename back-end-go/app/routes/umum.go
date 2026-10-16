@@ -16,4 +16,6 @@ func setupUmumRoutes(api fiber.Router) {
 	route.Get("/schools", umum.GetSchoolsList)
 	route.Get("/siswa-school", umum.GetSiswaSchool)
 	route.Post("/reports", umum.CreatePublicReport)
+	route.Get("/reports", umum.GetPublicReports)
+	route.Get("/reports/:id", umum.GetPublicReportDetail)
 }

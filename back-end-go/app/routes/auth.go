@@ -28,6 +28,8 @@ func SetupRoutes(app *fiber.App) {
 
 	route.Get("/dashboard/stats", dashCtrl.GetPublicStats)
 
+	setupNotificationRoutes(route)
+
 	setupAdminRoutes(route)
 	setupsppgRoutes(route)
 	setupSchoolRoutes(route)

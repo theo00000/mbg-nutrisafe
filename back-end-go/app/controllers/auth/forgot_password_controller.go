@@ -31,7 +31,7 @@ type ForgotPasswordRequestInput struct {
 }
 
 // resolveUserByEmail mencari user berdasarkan email yang diinput. Karena login email
-// untuk role school/sppg di-generate sistem (xxx@sch.id / xxx@nutrisafe.id) sementara
+// untuk role school/sppg di-generate sistem (xxx@sch.id / xxx@sppg.id) sementara
 // user mengingat email pribadinya, lookup dilakukan berurutan ke:
 //   1. users.email                          (umum/admin: login pakai email asli)
 //   2. school_profiles.contact_email        (school: email pribadi guru)
